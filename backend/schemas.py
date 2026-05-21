@@ -16,4 +16,4 @@ class ParkingDetailCreateSchema(BaseModel):
     kapasitas_motor: int = Field(..., ge=0)
     tarif_mobil: int = Field(..., ge=0)
     tarif_motor: int = Field(..., ge=0)
-    jam_operasional: str = Field(...,default="08:00 - 22:00")
+    jam_operasional: str = Field(...,description="jam operasional belum diatur")
