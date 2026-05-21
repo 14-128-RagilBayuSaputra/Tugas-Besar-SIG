@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException, status
 from database import get_db_connection
-from schemas import UserCreateSchema
+from schemas import UserCreateSchema, ParkingDetailCreateSchema
+from auth_jwt import create_access_token, get_current_admin
+from fastapi import Depends
 import json
 
 app = FastAPI(title="SIG parkir API", version="1.0.0")
@@ -131,11 +133,17 @@ def login_admin(user_data: UserCreateSchema):
         conn.close()
         
         if user:
+            token_akses = create_access_token(user_id=user['id'], email=user['email'])
+
             return {
                 "status": "success",
                 "message": "Login berhasil! Selamat datang di dashboard.",
-                "user_id": user['id'],
-                "email": user['email']
+                "access_token": token_akses,
+                "token_type": "bearer",
+                "user": {
+                    "user_id": user['id'],
+                    "email": user['email']
+                }
             }
         else:
             raise HTTPException(status_code=401, detail="Email atau password salah!")
@@ -189,3 +197,140 @@ def get_nearest_parking(lat:float, lng:float):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Gagal menghitung jarak spasial: {str(e)}")
+    
+@app.get("/api/admin/profile")
+def get_admin_profile(current_admin: dict = Depends(get_current_admin)):
+    return {
+        "status": "success",
+        "message": "Anda berhasil mengakses rute rahasia!",
+        "admin_logged_in": current_admin
+    }
+    
+@app.post("/api/parking", status_code=status.HTTP_201_CREATED)
+def create_parking_spot(
+    spot_data: ParkingDetailCreateSchema, 
+    current_admin: dict = Depends(get_current_admin)
+):
+    conn = get_db_connection()
+    if conn is None:
+        raise HTTPException(status_code=500, detail="Gagal terhubung ke database.")
+        
+    try:
+        from psycopg2.extras import RealDictCursor
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        admin_id = current_admin["user_id"]
+        query_spot = """
+            INSERT INTO parking_spots (nama_lokasi, deskripsi, geom, admin_id)
+            VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s)
+            RETURNING id;
+        """
+        cursor.execute(query_spot, (spot_data.nama_lokasi, spot_data.deskripsi, spot_data.longitude, spot_data.latitude, admin_id))
+        new_spot = cursor.fetchone()
+        spot_id = new_spot["id"]
+        
+        query_detail = """
+            INSERT INTO parking_details (spot_id, kapasitas_motor, kapasitas_mobil, tarif_motor, tarif_mobil, jam_operasional, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s);
+        """
+        cursor.execute(query_detail, (
+            spot_id, 
+            spot_data.kapasitas_motor, 
+            spot_data.kapasitas_mobil, 
+            spot_data.tarif_motor, 
+            spot_data.tarif_mobil, 
+            spot_data.jam_operasional,
+            spot_data.status
+        ))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {
+            "status": "success",
+            "message": "Lahan parkir baru berhasil ditambahkan oleh Anda!",
+            "spot_id": spot_id
+        }
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Gagal menambah data parkir: {str(e)}")
+    
+@app.patch("/api/parking/{spot_id}/status")
+def update_parking_status(
+    spot_id: int, 
+    new_status: str, 
+    current_admin: dict = Depends(get_current_admin)
+):
+    conn = get_db_connection()
+    if conn is None:
+        raise HTTPException(status_code=500, detail="Gagal terhubung ke database.")
+        
+    try:
+        from psycopg2.extras import RealDictCursor
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("SELECT admin_id FROM parking_spots WHERE id = %s;", (spot_id,))
+        spot = cursor.fetchone()
+        
+        if not spot:
+            raise HTTPException(status_code=404, detail="Lahan parkir tidak ditemukan.")
+            
+        if spot["admin_id"] != current_admin["user_id"]:
+            raise HTTPException(status_code=403, detail="Akses ditolak! Anda bukan pemilik data parkir ini.")
+            
+        query_update = "UPDATE parking_details SET status = %s WHERE spot_id = %s;"
+        cursor.execute(query_update, (new_status, spot_id))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"status": "success", "message": f"Status parkir berhasil diubah menjadi {new_status}!"}
+        
+    except HTTPException as http_err:
+        raise http_err
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Gagal mengubah status: {str(e)}")
+
+@app.delete("/api/parking/{spot_id}")
+def delete_parking_spot(
+    spot_id: int, 
+    current_admin: dict = Depends(get_current_admin)
+):
+    conn = get_db_connection()
+    if conn is None:
+        raise HTTPException(status_code=500, detail="Gagal terhubung ke database.")
+        
+    try:
+        from psycopg2.extras import RealDictCursor
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("SELECT admin_id FROM parking_spots WHERE id = %s;", (spot_id,))
+        spot = cursor.fetchone()
+        
+        if not spot:
+            raise HTTPException(status_code=404, detail="Lahan parkir tidak ditemukan.")
+            
+        if spot["admin_id"] != current_admin["user_id"]:
+            raise HTTPException(status_code=403, detail="Akses ditolak! Anda tidak berhak menghapus data ini.")
+            
+        cursor.execute("DELETE FROM parking_details WHERE spot_id = %s;", (spot_id,))
+        cursor.execute("DELETE FROM parking_spots WHERE id = %s;", (spot_id,))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"status": "success", "message": "Lahan parkir berhasil dihapus permanen!"}
+        
+    except HTTPException as http_err:
+        raise http_err
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Gagal menghapus data: {str(e)}")

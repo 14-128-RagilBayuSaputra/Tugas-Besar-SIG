@@ -12,8 +12,13 @@ class ParkingSpotCreateSchema(BaseModel):
     latitude: float = Field(..., ge=-6.0, le=-5.0)
     
 class ParkingDetailCreateSchema(BaseModel):
-    kapasitas_mobil: int = Field(..., ge=0)
-    kapasitas_motor: int = Field(..., ge=0)
-    tarif_mobil: int = Field(..., ge=0)
-    tarif_motor: int = Field(..., ge=0)
-    jam_operasional: str = Field(...,description="jam operasional belum diatur")
+    nama_lokasi: str
+    deskripsi: str
+    latitude: float
+    longitude: float
+    kapasitas_motor: int
+    kapasitas_mobil: int
+    tarif_motor: int
+    tarif_mobil: int
+    jam_operasional: str
+    status: str
