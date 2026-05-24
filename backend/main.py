@@ -334,3 +334,39 @@ def delete_parking_spot(
         if conn:
             conn.rollback()
         raise HTTPException(status_code=500, detail=f"Gagal menghapus data: {str(e)}")
+    
+@app.get("/api/parking/my-spots")
+def get_my_parking_spots(current_admin: dict = Depends(get_current_admin)):
+    conn = get_db_connection()
+    if conn is None:
+        raise HTTPException(status_code=500, detail="Gagal terhubung ke database.")
+        
+    try:
+        from psycopg2.extras import RealDictCursor
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        admin_id = current_admin["user_id"]
+        
+        query = """
+            SELECT ps.id, ps.nama_lokasi, ps.deskripsi, ST_Y(ps.geom) as latitude, ST_X(ps.geom) as longitude,
+                   pd.kapasitas_motor, pd.kapasitas_mobil, pd.tarif_motor, pd.tarif_mobil, pd.jam_operasional, pd.status
+            FROM parking_spots ps
+            JOIN parking_details pd ON ps.id = pd.spot_id
+            WHERE ps.admin_id = %s;
+        """
+        cursor.execute(query, (admin_id,))
+        my_spots = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return {
+            "status": "success",
+            "total_data": len(my_spots),
+            "data": my_spots
+        }
+        
+    except Exception as e:
+        if conn:
+            conn.close()
+        raise HTTPException(status_code=500, detail=f"Gagal mengambil data parkir Anda: {str(e)}")
