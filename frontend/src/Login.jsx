@@ -8,28 +8,35 @@ function Login(){
     const [pesanEror, setPesanEror] = useState('');
     const navigate = useNavigate();
     const handleLogin = async (e) => {
-        e.preventDefault();
-        setPesanEror('');
+    e.preventDefault();
+    setPesanEror('');
 
-        try {
-            const response = await axios.post('http://localhost:8000/api/auth/login',{
-                username: username,
-                password: password 
-            });
+    try {
+      const response = await axios.post('http://localhost:8000/api/auth/login', {
+        email: username,
+        password: password
+      });
 
-            if (response.data && response.data.access_token) {
-                localStorage.setItem('token_admin', response.data.access_token);
-                alert('Login berhasil');
-                navigate('/dashboard');
-            }
-        }catch (error) {
-            if (error.response && error.response.data.detail){
-                setPesanEror(error.response.data.deail);
-            }else {
-                setPesanEror('gagal terhubung ke database');
-            }
+      if (response.data && response.data.access_token) {
+        localStorage.setItem('token_admin', response.data.access_token);
+        alert('Login berhasil');
+        navigate('/dashboard'); 
+      }
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.detail) {
+        const detailEror = error.response.data.detail;
+        
+        if (typeof detailEror === 'string') {
+          setPesanEror(detailEror);
+        } else if (typeof detailEror === 'object') {
+          const pesanPertama = detailEror[0]?.msg || JSON.stringify(detailEror);
+          setPesanEror(`Validasi Gagal: ${pesanPertama}`);
         }
-    };
+      } else {
+        setPesanEror('Gagal terhubung ke server backend.');
+      }
+    }
+  };
 
 return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f3f4f6' }}>

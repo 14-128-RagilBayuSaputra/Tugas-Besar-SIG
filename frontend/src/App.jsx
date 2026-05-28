@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
-
+import Dashboard from './Dashboard';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Login from './Login';
 
@@ -67,6 +67,8 @@ function App() {
         <Route path="/" element={<PetaUtama />} />
         
         <Route path="/login" element={<Login />} />
+        
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
   );
