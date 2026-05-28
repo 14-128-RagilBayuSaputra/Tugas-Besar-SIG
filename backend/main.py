@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from database import get_db_connection
 from schemas import UserCreateSchema, ParkingDetailCreateSchema
 from auth_jwt import create_access_token, get_current_admin
@@ -6,6 +7,14 @@ from fastapi import Depends
 import json
 
 app = FastAPI(title="SIG parkir API", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"], 
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():
