@@ -49,8 +49,7 @@ def get_parking_spot_geojson():
     
     try:
         from psycopg2.extras import RealDictCursor
-        cursor =  conn.cursor(cursor_factory=RealDictCursor)
-        
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
         query = """
             SELECT row_to_json(fc) AS geojson
             FROM (
@@ -60,7 +59,18 @@ def get_parking_spot_geojson():
                     SELECT 'Feature' AS type,
                            ST_AsGeoJSON(s.geom)::json AS geometry,
                            row_to_json(
-                               (SELECT l FROM (SELECT s.id, s.nama_lokasi, s.deskripsi, d.tarif_motor, d.tarif_mobil, d.status) l)
+                               (SELECT l FROM (
+                                   SELECT 
+                                       s.id, 
+                                       s.nama_lokasi, 
+                                       s.deskripsi, 
+                                       d.tarif_motor, 
+                                       d.tarif_mobil, 
+                                       d.kapasitas_motor,  
+                                       d.kapasitas_mobil,  
+                                       d.jam_operasional,   
+                                       d.status
+                               ) l)
                            ) AS properties
                     FROM parking_spots s
                     JOIN parking_details d ON s.id = d.spot_id
@@ -179,6 +189,9 @@ def get_nearest_parking(lat:float, lng:float):
                 ST_Y(s.geom) AS latitude,
                 d.tarif_motor, 
                 d.tarif_mobil, 
+                d.kapasitas_motor, 
+                d.kapasitas_mobil, 
+                d.jam_operasional,
                 d.status,
                 ROUND(
                     ST_Distance(
