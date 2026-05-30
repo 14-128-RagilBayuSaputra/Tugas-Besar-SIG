@@ -107,6 +107,24 @@ function Dashboard() {
     }
   };
 
+  const handleHapusLahan = async (idSpot) => {
+    const konfirmasi = window.confirm("Yakin ingin menghapus lahan parkir ini secara permanen?");
+    if (!konfirmasi) return; 
+    const token = localStorage.getItem('token_admin');
+
+    try {
+      await axios.delete(`http://localhost:8000/api/parking/${idSpot}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      alert('Lahan parkir berhasil dihapus permanen!');
+      setLahanSaya(lahanSaya.filter(spot => spot.id !== idSpot));
+    } catch (error) {
+      console.error("Gagal menghapus:", error.response?.data);
+      alert('Gagal menghapus lahan parkir. Pastikan koneksi server aman.');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token_admin');
     navigate('/');
@@ -194,7 +212,7 @@ function Dashboard() {
               <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '2px solid #e5e7eb' }}>
                 <th style={{ padding: '12px' }}>Nama Lokasi & Detail</th>
                 <th style={{ padding: '12px' }}>Status</th>
-                <th style={{ padding: '12px' }}>Aksi Sakelar</th>
+                <th style={{ padding: '12px' }}>Aksi Manajemen</th> 
               </tr>
             </thead>
             <tbody>
@@ -213,9 +231,14 @@ function Dashboard() {
                     </span>
                   </td>
                   <td style={{ padding: '12px' }}>
-                    <button onClick={() => gantiStatusLahan(spot.id, spot.status)} style={{ padding: '6px 12px', backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
-                      Set {spot.status === 'Tersedia' ? 'Penuh' : 'Tersedia'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => gantiStatusLahan(spot.id, spot.status)} style={{ padding: '6px 12px', backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                        Set {spot.status === 'Tersedia' ? 'Penuh' : 'Tersedia'}
+                      </button>
+                      <button onClick={() => handleHapusLahan(spot.id)} style={{ padding: '6px 12px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                        Hapus
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
