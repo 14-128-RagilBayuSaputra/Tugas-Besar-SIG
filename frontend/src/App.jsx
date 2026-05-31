@@ -373,27 +373,17 @@ function PetaUtama() {
                   <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '7px', padding: '7px 10px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontSize: '10px', color: '#94a3b8' }}>MOTOR</div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', color: '#0f172a' }}>Rp {spot.tarif_motor?.toLocaleString('id-ID')}/jam</div>
+                      <div style={{ fontSize: '11px', fontWeight: '700', color: '#0f172a' }}>Rp {spot.tarif_motor?.toLocaleString('id-ID')}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '10px', color: '#94a3b8' }}>MOBIL</div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', color: '#0f172a' }}>Rp {spot.tarif_mobil?.toLocaleString('id-ID')}/jam</div>
+                      <div style={{ fontSize: '11px', fontWeight: '700', color: '#0f172a' }}>Rp {spot.tarif_mobil?.toLocaleString('id-ID')}</div>
                     </div>
                   </div>
 
                   <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '7px', padding: '6px 10px', fontSize: '11px', color: '#475569', marginBottom: '12px' }}>
-                    Jam ops: <strong>{spot.jam_operasional || 'Tidak tentu'}</strong>
+                    Jam operasional: <strong>{spot.jam_operasional || 'Tidak tentu'}</strong>
                   </div>
-
-                  <button 
-                    onClick={() => alert(`Navigasi ke ${spot.nama_lokasi} belum terhubung ke Google Maps.`)}
-                    style={{ width: '100%', height: '36px', borderRadius: '7px', background: '#0f172a', color: 'white', border: 'none', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s' }}
-                    onMouseOver={(e) => e.target.style.backgroundColor = '#1e293b'}
-                    onMouseOut={(e) => e.target.style.backgroundColor = '#0f172a'}
-                  >
-                    Lihat Rute
-                  </button>
-
                 </div>
               </div>
             </Popup>

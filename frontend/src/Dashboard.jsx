@@ -448,7 +448,7 @@ function Dashboard() {
                 <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
                   <span className="meta-chip">Motor <strong>{spot.kapasitas_motor}</strong></span>
                   <span className="meta-chip">Mobil <strong>{spot.kapasitas_mobil}</strong></span>
-                  <span className="meta-chip">Rp <strong>{spot.tarif_motor}</strong>/jam</span>
+                  <span className="meta-chip">Rp <strong>{spot.tarif_motor}</strong></span>
                 </div>
 
                 <div style={{ display: 'flex', gap: '6px' }}>
