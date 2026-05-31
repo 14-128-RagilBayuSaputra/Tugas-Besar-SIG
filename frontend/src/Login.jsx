@@ -10,6 +10,18 @@ function Login() {
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
 
+  const [konfirmPassword, setKonfirmPassword] = useState('');
+  const [tampilKonfirm, setTampilKonfirm] = useState(false);
+  const [konfirmError, setKonfirmError] = useState(false);
+
+  const gantiMode = (modeBaru) => {
+    setMode(modeBaru);
+    setErrorMsg('');
+    setKonfirmError(false);
+    setPassword('');
+    setKonfirmPassword('');
+  };
+
   const handleMasuk = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -43,6 +55,12 @@ function Login() {
   const handleDaftar = async (e) => {
     e.preventDefault();
     setErrorMsg('');
+    setKonfirmError(false);
+
+    if (password !== konfirmPassword) {
+      setKonfirmError(true);
+      return; 
+    }
 
     try {
       await axios.post('http://localhost:8000/api/auth/register', {
@@ -51,8 +69,7 @@ function Login() {
       });
 
       alert('Pendaftaran berhasil! Silakan masuk dengan akun baru Anda.');
-      setMode('masuk'); 
-      setPassword('');
+      gantiMode('masuk'); 
     } catch (error) {
       if (error.response && error.response.data && error.response.data.detail) {
         const detailEror = error.response.data.detail;
@@ -265,6 +282,20 @@ function Login() {
             outline: none;
           }
 
+          .input-field.err-inp {
+            border-color: var(--err-border);
+          }
+
+          .err-txt {
+            font-size: 11px;
+            color: var(--err-text);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
+          }
+
           .btn-submit {
             width: 100%;
             height: 44px;
@@ -310,19 +341,19 @@ function Login() {
           </Link>
         </div>
 
-        <h2 className="teks-judul">Halo, Admin</h2>
-        <p className="teks-subjudul">Masuk atau daftar untuk mengelola parkiran.</p>
+        <h2 className="teks-judul">{mode === 'masuk' ? 'Halo, Admin' : 'Buat akun baru'}</h2>
+        <p className="teks-subjudul">{mode === 'masuk' ? 'Masuk atau daftar untuk mengelola parkiran.' : 'Isi data berikut untuk mendaftar.'}</p>
 
         <div className="tab-container">
           <button 
             className={`tab-btn tab-masuk ${mode === 'masuk' ? 'tab-aktif' : 'tab-pasif'}`}
-            onClick={() => { setMode('masuk'); setErrorMsg(''); }}
+            onClick={() => gantiMode('masuk')}
           >
             Masuk
           </button>
           <button 
             className={`tab-btn ${mode === 'daftar' ? 'tab-aktif' : 'tab-pasif'}`}
-            onClick={() => { setMode('daftar'); setErrorMsg(''); }}
+            onClick={() => gantiMode('daftar')}
           >
             Daftar
           </button>
@@ -344,7 +375,7 @@ function Login() {
               <input 
                 type="text" 
                 className="input-field" 
-                placeholder="Username kamu..." 
+                placeholder={mode === 'masuk' ? "Username kamu..." : "Buat username unik..."} 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -364,16 +395,18 @@ function Login() {
               <input 
                 type={tampilPassword ? "text" : "password"} 
                 className="input-field" 
-                placeholder="••••••••" 
+                placeholder={mode === 'masuk' ? "••••••••" : "Min. 8 karakter..."} 
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setKonfirmError(false); 
+                }}
                 required
               />
               <button 
                 type="button" 
                 className="input-action" 
                 onClick={() => setTampilPassword(!tampilPassword)}
-                title={tampilPassword ? "Sembunyikan password" : "Tampilkan password"}
               >
                 {tampilPassword ? (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -390,6 +423,59 @@ function Login() {
             </div>
           </div>
 
+          {mode === 'daftar' && (
+            <div className="form-group">
+              <label className="form-label">Konfirmasi Password</label>
+              <div className="input-wrapper">
+                <span className="input-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    <path d="M9 16l2 2 4-4"></path>
+                  </svg>
+                </span>
+                <input 
+                  type={tampilKonfirm ? "text" : "password"} 
+                  className={`input-field ${konfirmError ? 'err-inp' : ''}`} 
+                  placeholder="Ulangi password..." 
+                  value={konfirmPassword}
+                  onChange={(e) => {
+                    setKonfirmPassword(e.target.value);
+                    setKonfirmError(false); 
+                  }}
+                  required
+                />
+                <button 
+                  type="button" 
+                  className="input-action" 
+                  onClick={() => setTampilKonfirm(!tampilKonfirm)}
+                >
+                  {tampilKonfirm ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {konfirmError && (
+                <div className="err-txt">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  Password tidak cocok.
+                </div>
+              )}
+            </div>
+          )}
+
           <button type="submit" className="btn-submit">
             {mode === 'masuk' ? (
               <>
@@ -401,7 +487,15 @@ function Login() {
                 Masuk
               </>
             ) : (
-              'Daftar Sekarang'
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="8.5" cy="7" r="4"></circle>
+                  <line x1="20" y1="8" x2="20" y2="14"></line>
+                  <line x1="23" y1="11" x2="17" y2="11"></line>
+                </svg>
+                Daftar Sekarang
+              </>
             )}
           </button>
 

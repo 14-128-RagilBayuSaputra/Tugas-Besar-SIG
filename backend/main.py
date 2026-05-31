@@ -392,3 +392,74 @@ def get_my_parking_spots(current_admin: dict = Depends(get_current_admin)):
         if conn:
             conn.close()
         raise HTTPException(status_code=500, detail=f"Gagal mengambil data parkir Anda: {str(e)}")
+
+@app.put("/api/parking/{spot_id}")
+def update_parking_spot(
+    spot_id: int, 
+    spot_data: ParkingDetailCreateSchema, 
+    current_admin: dict = Depends(get_current_admin)
+):
+    conn = get_db_connection()
+    if conn is None:
+        raise HTTPException(status_code=500, detail="Gagal terhubung ke database.")
+        
+    try:
+        from psycopg2.extras import RealDictCursor
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("SELECT admin_id FROM parking_spots WHERE id = %s;", (spot_id,))
+        spot = cursor.fetchone()
+        
+        if not spot:
+            raise HTTPException(status_code=404, detail="Lahan parkir tidak ditemukan.")
+            
+        if spot["admin_id"] != current_admin["user_id"]:
+            raise HTTPException(status_code=403, detail="Akses ditolak! Anda bukan pemilik data parkir ini.")
+            
+        query_spot = """
+            UPDATE parking_spots 
+            SET nama_lokasi = %s, 
+                deskripsi = %s, 
+                geom = ST_SetSRID(ST_MakePoint(%s, %s), 4326)
+            WHERE id = %s;
+        """
+        cursor.execute(query_spot, (
+            spot_data.nama_lokasi, 
+            spot_data.deskripsi, 
+            spot_data.longitude, 
+            spot_data.latitude, 
+            spot_id
+        ))
+        
+        query_detail = """
+            UPDATE parking_details 
+            SET kapasitas_motor = %s, 
+                kapasitas_mobil = %s, 
+                tarif_motor = %s, 
+                tarif_mobil = %s, 
+                jam_operasional = %s, 
+                status = %s
+            WHERE spot_id = %s;
+        """
+        cursor.execute(query_detail, (
+            spot_data.kapasitas_motor, 
+            spot_data.kapasitas_mobil, 
+            spot_data.tarif_motor, 
+            spot_data.tarif_mobil, 
+            spot_data.jam_operasional,
+            spot_data.status,
+            spot_id
+        ))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"status": "success", "message": "Data parkiran berhasil diperbarui!"}
+        
+    except HTTPException as http_err:
+        raise http_err
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Gagal memperbarui data: {str(e)}")
