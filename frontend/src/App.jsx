@@ -146,12 +146,23 @@ function PetaUtama() {
     if (filterJarak === '>5km') cocokJarak = jarakAsli > 5000;
 
     let cocokTarif = true;
+    const tarifMotor = parseInt(spot.tarif_motor) || 0;
+    const tarifMobil = parseInt(spot.tarif_mobil) || 0;
+
     if (filterTarif === 'Gratis') {
-      cocokTarif = spot.tarif_motor === 0 && spot.tarif_mobil === 0;
+      if (filterKendaraan === 'Mobil') cocokTarif = tarifMobil === 0;
+      else if (filterKendaraan === 'Motor') cocokTarif = tarifMotor === 0;
+      else cocokTarif = tarifMotor === 0 && tarifMobil === 0;
+
     } else if (filterTarif === '0-3000') {
-      cocokTarif = spot.tarif_motor <= 3000 || spot.tarif_mobil <= 3000;
+      if (filterKendaraan === 'Mobil') cocokTarif = tarifMobil > 0 && tarifMobil <= 3000;
+      else if (filterKendaraan === 'Motor') cocokTarif = tarifMotor > 0 && tarifMotor <= 3000;
+      else cocokTarif = (tarifMotor > 0 && tarifMotor <= 3000) || (tarifMobil > 0 && tarifMobil <= 3000);
+
     } else if (filterTarif === '>3000') {
-      cocokTarif = spot.tarif_motor > 3000 || spot.tarif_mobil > 3000;
+      if (filterKendaraan === 'Mobil') cocokTarif = tarifMobil > 3000;
+      else if (filterKendaraan === 'Motor') cocokTarif = tarifMotor > 3000;
+      else cocokTarif = tarifMotor > 3000 || tarifMobil > 3000;
     }
 
     let cocokStatus = true;
@@ -178,7 +189,6 @@ function PetaUtama() {
           body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
           #root { width: 100%; height: 100%; }
 
-          /* TWEAKS POPUP LEAFLET AGAR MATCH MOCKUP USER */
           .leaflet-popup-content-wrapper {
             padding: 0 !important;
             overflow: hidden !important;
@@ -251,7 +261,7 @@ function PetaUtama() {
                 </div>
 
                 <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8', marginBottom: '8px' }}>Kisaran Tarif per Jam</div>
+                  <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8', marginBottom: '8px' }}>Kisaran Tarif</div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <FilterPill label="Gratis" value="Gratis" state={filterTarif} setState={setFilterTarif} />
                     <FilterPill label="Rp 0 - 3.000" value="0-3000" state={filterTarif} setState={setFilterTarif} />
