@@ -45,7 +45,6 @@ const ikonLokasiUser = new L.divIcon({
   popupAnchor: [0, -11]
 });
 
-
 const FilterPill = ({ label, value, state, setState }) => {
   const isActive = state === value;
   return (
@@ -197,19 +196,63 @@ function PetaUtama() {
             box-shadow: 4px 4px 0 rgba(15, 23, 42, 0.15) !important;
           }
           .leaflet-popup-content { margin: 0 !important; width: 230px !important; }
-          .leaflet-popup-tip-container { display: none; /* Sembunyikan panah */ }
+          .leaflet-popup-tip-container { display: none; }
           
           .topbar-input::placeholder { color: #94a3b8; }
+
+          @media (max-width: 768px) {
+            .control-container {
+              top: 15px !important;
+              left: 15px !important;
+              right: 15px !important;
+              gap: 8px !important;
+              /* Ubah jadi sejajar satu baris */
+              flex-wrap: nowrap !important;
+            }
+
+            .search-container { 
+              flex: 1 !important;
+              width: auto !important; 
+            }
+
+            .search-box-wrapper {
+              width: 100% !important;
+            }
+
+            .search-box { 
+              width: 100% !important; 
+              flex: 1 !important;
+            }
+
+            .filter-dropdown { 
+              width: calc(100vw - 30px) !important; 
+              top: 50px !important; 
+              position: absolute !important;
+              max-height: 75vh !important;
+              overflow-y: auto !important;
+            }
+
+            .btn-login { 
+              width: 42px !important; 
+              padding: 0 !important;
+              justify-content: center !important;
+            }
+
+            .login-text { display: none !important; }
+            .login-icon { display: block !important; }
+
+            .gps-button { bottom: 25px !important; right: 15px !important; }
+          }
         `}
       </style>
 
-      <div style={{ position: 'absolute', top: '20px', left: '20px', right: '20px', zIndex: 1000, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', pointerEvents: 'none' }}>
+      <div className="control-container" style={{ position: 'absolute', top: '20px', left: '20px', right: '20px', zIndex: 1000, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', pointerEvents: 'none' }}>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', pointerEvents: 'auto' }}>
+        <div className="search-container" style={{ display: 'flex', flexDirection: 'column', gap: '10px', pointerEvents: 'auto', position: 'relative' }}>
           
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #0f172a', padding: '0 14px', height: '42px', width: '270px', boxSizing: 'border-box' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+          <div className="search-box-wrapper" style={{ display: 'flex', gap: '8px' }}>
+            <div className="search-box" style={{ display: 'flex', alignItems: 'center', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #0f172a', padding: '0 14px', height: '42px', width: '270px', boxSizing: 'border-box' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', minWidth: '16px' }}>
                 <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
               <input
@@ -218,13 +261,13 @@ function PetaUtama() {
                 value={kataKunci}
                 onChange={(e) => setKataKunci(e.target.value)}
                 className="topbar-input"
-                style={{ flex: '1', height: '100%', border: 'none', outline: 'none', backgroundColor: 'transparent', color: '#0f172a', fontFamily: 'inherit', fontWeight: '500', fontSize: '13px' }}
+                style={{ flex: '1', height: '100%', border: 'none', outline: 'none', backgroundColor: 'transparent', color: '#0f172a', fontFamily: 'inherit', fontWeight: '500', fontSize: '13px', width: '100%' }}
               />
             </div>
             
             <button 
               onClick={() => setTampilFilter(!tampilFilter)}
-              style={{ backgroundColor: tampilFilter ? '#0f172a' : 'white', color: tampilFilter ? 'white' : '#0f172a', border: '2px solid #0f172a', borderRadius: '8px', height: '42px', width: '42px', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+              style={{ backgroundColor: tampilFilter ? '#0f172a' : 'white', color: tampilFilter ? 'white' : '#0f172a', border: '2px solid #0f172a', borderRadius: '8px', height: '42px', width: '42px', minWidth: '42px', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
               title="Filter"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -234,7 +277,7 @@ function PetaUtama() {
           </div>
 
           {tampilFilter && (
-            <div style={{ width: '270px', border: '2px solid #0f172a', borderRadius: '12px', backgroundColor: 'white', overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+            <div className="filter-dropdown" style={{ width: '270px', border: '2px solid #0f172a', borderRadius: '12px', backgroundColor: 'white', overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
               <div style={{ padding: '12px 14px', borderBottom: '2px solid #0f172a', fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>
                 Filter Pencarian
               </div>
@@ -293,14 +336,20 @@ function PetaUtama() {
           )}
         </div>
 
-        <div style={{ pointerEvents: 'auto' }}>
+        <div className="login-container" style={{ pointerEvents: 'auto' }}>
           <Link 
             to="/login" 
+            className="btn-login"
             style={{ display: 'flex', alignItems: 'center', height: '42px', padding: '0 16px', backgroundColor: 'white', color: '#0f172a', textDecoration: 'none', border: '2px solid #0f172a', borderRadius: '8px', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit', transition: 'all 0.2s' }}
-            onMouseOver={(e) => { e.target.style.backgroundColor = '#0f172a'; e.target.style.color = 'white'; }}
-            onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = '#0f172a'; }}
+            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#0f172a'; e.currentTarget.style.color = 'white'; }}
+            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = '#0f172a'; }}
+            title="Login Admin"
           >
-            Login Admin
+            <svg className="login-icon" style={{ display: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span className="login-text">Login Admin</span>
           </Link>
         </div>
 
@@ -308,14 +357,15 @@ function PetaUtama() {
 
       <button
         onClick={dapatkanLokasiSaya}
+        className="gps-button"
         style={{
           position: 'absolute', bottom: '30px', right: '30px', zIndex: 1000, width: '45px', height: '45px',
           backgroundColor: '#0f172a', color: 'white', border: '2px solid white', borderRadius: '50%',
           cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', display: 'flex', justifyContent: 'center',
           alignItems: 'center', transition: 'transform 0.2s'
         }}
-        onMouseOver={(e) => e.target.style.transform = 'scale(1.08)'}
-        onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
+        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
         title="Temukan Lokasi Saya"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
