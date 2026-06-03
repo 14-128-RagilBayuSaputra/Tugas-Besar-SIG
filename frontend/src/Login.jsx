@@ -92,7 +92,6 @@ function Login() {
         {`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-          /* RESET MARGIN LAYAR AGAR FULL SCREEN */
           body, html, #root {
             margin: 0;
             padding: 0;
@@ -326,6 +325,37 @@ function Login() {
             font-weight: 600;
             margin-bottom: 14px;
             text-align: left;
+          }
+
+          @media (max-width: 480px) {
+            body, html {
+              overflow-y: auto;
+            }
+            .login-container {
+              padding: 16px;
+              height: auto;
+              min-height: 100vh;
+            }
+            .login-card {
+              padding: 24px 20px;
+              border-radius: 12px;
+            }
+            .teks-judul {
+              font-size: 20px;
+            }
+            .teks-subjudul {
+              font-size: 12px;
+              margin-bottom: 18px;
+            }
+            .btn-back-wrapper {
+              margin-bottom: 18px;
+            }
+            .input-field {
+              height: 40px;
+            }
+            .btn-submit {
+              height: 40px;
+            }
           }
         `}
       </style>

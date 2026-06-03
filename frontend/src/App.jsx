@@ -152,12 +152,10 @@ function PetaUtama() {
       if (filterKendaraan === 'Mobil') cocokTarif = tarifMobil === 0;
       else if (filterKendaraan === 'Motor') cocokTarif = tarifMotor === 0;
       else cocokTarif = tarifMotor === 0 && tarifMobil === 0;
-
     } else if (filterTarif === '0-3000') {
       if (filterKendaraan === 'Mobil') cocokTarif = tarifMobil > 0 && tarifMobil <= 3000;
       else if (filterKendaraan === 'Motor') cocokTarif = tarifMotor > 0 && tarifMotor <= 3000;
       else cocokTarif = (tarifMotor > 0 && tarifMotor <= 3000) || (tarifMobil > 0 && tarifMobil <= 3000);
-
     } else if (filterTarif === '>3000') {
       if (filterKendaraan === 'Mobil') cocokTarif = tarifMobil > 3000;
       else if (filterKendaraan === 'Motor') cocokTarif = tarifMotor > 3000;
@@ -206,12 +204,11 @@ function PetaUtama() {
               left: 15px !important;
               right: 15px !important;
               gap: 8px !important;
-              /* Ubah jadi sejajar satu baris */
               flex-wrap: nowrap !important;
             }
 
             .search-container { 
-              flex: 1 !important;
+              flex: 1 !important; 
               width: auto !important; 
             }
 
@@ -222,18 +219,52 @@ function PetaUtama() {
             .search-box { 
               width: 100% !important; 
               flex: 1 !important;
+              height: 38px !important; 
             }
 
             .filter-dropdown { 
               width: calc(100vw - 30px) !important; 
-              top: 50px !important; 
+              top: 45px !important; 
               position: absolute !important;
               max-height: 75vh !important;
               overflow-y: auto !important;
+              border: 2px solid #0f172a !important;
+              border-radius: 10px !important;
+            }
+
+            .filter-dropdown > div:first-child {
+              padding: 8px 12px !important;
+              font-size: 12px !important;
+            }
+
+            .filter-dropdown > div:last-child {
+              padding: 10px !important; 
+            }
+
+            .filter-dropdown > div:last-child > div {
+              margin-bottom: 10px !important; 
+            }
+
+            .filter-dropdown  div[style*="fontSize: '10px'"] {
+              font-size: 9px !important;
+              margin-bottom: 4px !important;
+            }
+
+            .filter-dropdown button {
+              padding: 4px 8px !important; 
+              font-size: 11px !important;  
+              border-radius: 4px !important;
+            }
+
+            .filter-dropdown button[style*="width: '100%'"] {
+              height: 30px !important;
+              font-size: 11px !important;
+              margin-top: 5px !important;
             }
 
             .btn-login { 
-              width: 42px !important; 
+              width: 38px !important;
+              height: 38px !important;
               padding: 0 !important;
               justify-content: center !important;
             }

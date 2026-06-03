@@ -8,18 +8,9 @@ import L from 'leaflet';
 const ikonParkirBiru = new L.divIcon({
   className: 'custom-p-marker',
   html: `<div style="
-    width: 28px; 
-    height: 28px; 
-    background-color: #0f172a; 
-    border: 2px solid white; 
-    border-radius: 8px; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    color: white; 
-    font-weight: bold; 
-    font-size: 14px; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    width: 28px; height: 28px; background-color: #0f172a; border: 2px solid white; 
+    border-radius: 8px; display: flex; justify-content: center; align-items: center; 
+    color: white; font-weight: bold; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     font-family: 'Plus Jakarta Sans', sans-serif;
   ">P</div>`,
   iconSize: [28, 28],
@@ -30,18 +21,9 @@ const ikonParkirBiru = new L.divIcon({
 const ikonParkirBaru = new L.divIcon({
   className: 'custom-p-new',
   html: `<div style="
-    width: 28px; 
-    height: 28px; 
-    background-color: #dc2626; 
-    border: 2px solid white; 
-    border-radius: 8px; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    color: white; 
-    font-weight: bold; 
-    font-size: 14px; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+    width: 28px; height: 28px; background-color: #dc2626; border: 2px solid white; 
+    border-radius: 8px; display: flex; justify-content: center; align-items: center; 
+    color: white; font-weight: bold; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.4);
     font-family: 'Plus Jakarta Sans', sans-serif;
   ">P</div>`,
   iconSize: [28, 28],
@@ -52,12 +34,8 @@ const ikonParkirBaru = new L.divIcon({
 const ikonLokasiUser = new L.divIcon({
   className: 'custom-user-marker',
   html: `<div style="
-    width: 16px; 
-    height: 16px; 
-    background-color: #ef4444; 
-    border-radius: 50%; 
-    border: 3px solid white; 
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+    width: 16px; height: 16px; background-color: #ef4444; border-radius: 50%; 
+    border: 3px solid white; box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
   "></div>`,
   iconSize: [22, 22],
   iconAnchor: [11, 11],
@@ -80,6 +58,7 @@ function Dashboard() {
   const [titikUser, setTitikUser] = useState(null);
   const [lahanSaya, setLahanSaya] = useState([]);
   const navigate = useNavigate();
+  
   const [tampilMenu, setTampilMenu] = useState(false);
   const [namaLokasi, setNamaLokasi] = useState('');
   const [deskripsi, setDeskripsi] = useState('');
@@ -90,7 +69,6 @@ function Dashboard() {
   const [tarifMotor, setTarifMotor] = useState(0);
   const [tarifMobil, setTarifMobil] = useState(0);
   const [jamOperasional, setJamOperasional] = useState('08:00 - 22:00'); 
-  
   const [editIdSpot, setEditIdSpot] = useState(null); 
 
   const formMarkerRef = useRef(null);
@@ -183,7 +161,7 @@ function Dashboard() {
     setJamOperasional(spot.jam_operasional || '08:00 - 22:00');
     
     setTampilMenu(false);
-    etPosisiPeta([parseFloat(spot.latitude) + 0.003, parseFloat(spot.longitude)]);
+    setPosisiPeta([parseFloat(spot.latitude) + 0.003, parseFloat(spot.longitude)]);
   };
 
   const handleSubmitForm = async (e) => {
@@ -212,7 +190,6 @@ function Dashboard() {
         await axios.put(`http://localhost:8000/api/parking/${editIdSpot}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
         setLahanSaya(lahanSaya.map(spot => spot.id === editIdSpot ? { ...spot, ...payload } : spot));
         alert('Data parkiran berhasil diperbarui!');
       } else {
@@ -225,7 +202,7 @@ function Dashboard() {
       }
       tutupForm();
     } catch (error) {
-      alert(`Gagal menyimpan data. Pastikan format input sesuai atau backend mendukung rute Update.`);
+      alert('Gagal menyimpan data. Periksa keselarasan format objek payload.');
       console.error(error);
     }
   };
@@ -298,90 +275,41 @@ function Dashboard() {
           .leaflet-popup-tip-container { display: none; }
 
           .topbar-btn {
-            height: 38px;
-            border-radius: 8px;
-            border: 2px solid var(--hitam);
-            font-size: 12px;
-            font-weight: 700;
-            padding: 0 14px;
-            background: white;
-            color: var(--hitam);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-            font-family: inherit;
+            height: 38px; border-radius: 8px; border: 2px solid var(--hitam);
+            font-size: 12px; font-weight: 700; padding: 0 14px; background: white;
+            color: var(--hitam); cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 6px; transition: all 0.2s; font-family: inherit;
           }
           .topbar-btn:hover { background: var(--hitam); color: white; }
-          
           .topbar-danger { color: #dc2626; border-color: #dc2626; }
           .topbar-danger:hover { background: #dc2626; color: white; border-color: #dc2626; }
 
           .drawer-left {
-            position: absolute;
-            top: 0; left: 0; bottom: 0;
-            width: 300px;
-            border-right: 2px solid var(--hitam);
-            background: var(--bg-card);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease;
+            position: absolute; top: 0; left: 0; bottom: 0; width: 300px;
+            border-right: 2px solid var(--hitam); background: var(--bg-card);
+            z-index: 1000; display: flex; flex-direction: column;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.05); transition: transform 0.3s ease;
           }
           
           .drawer-header {
-            padding: 16px 16px 12px;
-            border-bottom: 2px solid var(--hitam);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 16px 16px 12px; border-bottom: 2px solid var(--hitam);
+            display: flex; justify-content: space-between; align-items: center;
           }
 
-          .admin-badge {
-            background: var(--hitam);
-            color: white;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 6px 12px;
-            border-radius: 6px;
-          }
-
-          .count-badge {
-            background: #f1f5f9;
-            color: var(--hitam);
-            border: 1.5px solid var(--hitam);
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 20px;
-          }
-
-          .drawer-body {
-            padding: 12px;
-            overflow-y: auto;
-            flex: 1;
-            background: #f8fafc;
-          }
+          .admin-badge { background: var(--hitam); color: white; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 6px; }
+          .count-badge { background: #f1f5f9; color: var(--hitam); border: 1.5px solid var(--hitam); font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 20px; }
+          .drawer-body { padding: 12px; overflow-y: auto; flex: 1; background: #f8fafc; }
 
           .park-card {
-            background: var(--bg-card);
-            border: 1.5px solid var(--border-normal);
-            border-radius: 10px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-            transition: border-color 0.2s;
+            background: var(--bg-card); border: 1.5px solid var(--border-normal);
+            border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; transition: border-color 0.2s;
           }
           .park-card:hover { border-color: var(--hitam); }
 
           .card-title { font-size: 13px; font-weight: 700; color: var(--hitam); margin-bottom: 2px; }
           .card-desc { font-size: 11px; color: var(--teks-lokasi); margin-bottom: 10px; }
 
-          .status-pill {
-            font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; letter-spacing: 0.03em;
-          }
+          .status-pill { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; letter-spacing: 0.03em; }
           .status-buka { background: var(--buka-bg); color: var(--buka-text); border: 1px solid var(--buka-border); }
           .status-penuh { background: var(--penuh-bg); color: var(--penuh-text); border: 1px solid var(--penuh-border); }
 
@@ -407,13 +335,25 @@ function Dashboard() {
           .popup-input { height: 34px; border-radius: 7px; border: 1.5px solid var(--border-input); font-size: 12px; padding: 0 10px; width: 100%; box-sizing: border-box; font-family: inherit; color: var(--hitam); background: var(--bg-input); outline: none; transition: border 0.2s; }
           .popup-input:focus { border-color: var(--hitam); background: white; }
           .popup-submit { height: 36px; border-radius: 8px; background: var(--hitam); color: white; border: none; font-weight: 700; cursor: pointer; width: 100%; font-family: inherit; margin-top: 10px;}
+
+          @media (max-width: 768px) {
+            .drawer-left { width: 82vw !important; max-width: 320px !important; }
+            .leaflet-popup-content { width: 240px !important; }
+            .popup-wrapper { padding: 12px !important; }
+            .popup-input { height: 32px !important; font-size: 11px !important; }
+            .park-card { padding: 10px 12px !important; }
+            .card-title { font-size: 12px !important; line-height: 1.3 !important; }
+            .card-desc { font-size: 10px !important; margin-bottom: 8px !important; }
+            .park-card div[style*="display: 'flex'"] { flex-wrap: wrap !important; gap: 4px !important; }
+            .meta-chip { padding: 3px 6px !important; font-size: 9px !important; }
+            .action-btn { height: 28px !important; font-size: 10px !important; padding: 0 4px !important; }
+            .topbar-btn { height: 34px !important; padding: 0 10px !important; font-size: 11px !important; }
+          }
         `}
       </style>
 
       <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '8px' }}>
-        <button onClick={handleLogout} className="topbar-btn topbar-danger">
-          Keluar
-        </button>
+        <button onClick={handleLogout} className="topbar-btn topbar-danger">Keluar</button>
         <button onClick={() => setTampilMenu(!tampilMenu)} className="topbar-btn" title="Toggle Sidebar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
@@ -434,13 +374,12 @@ function Dashboard() {
           ) : (
             lahanSaya.map((spot) => (
               <div key={spot.id} className="park-card">
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
                   <div>
                     <div className="card-title">{spot.nama_lokasi}</div>
                     <div className="card-desc">{spot.deskripsi || "Tanpa keterangan"}</div>
                   </div>
-                  <span className={`status-pill ${spot.status === 'Tersedia' ? 'status-buka' : 'status-penuh'}`}>
+                  <span className={`status-pill ${spot.status === 'Tersedia' ? 'status-buka' : 'status-penuh'}`} style={{ whiteSpace: 'nowrap' }}>
                     {spot.status === 'Tersedia' ? 'BUKA' : 'PENUH'}
                   </span>
                 </div>
@@ -456,7 +395,6 @@ function Dashboard() {
                   <button onClick={() => gantiStatusLahan(spot.id, spot.status)} className="action-btn btn-status">Status</button>
                   <button onClick={() => handleHapusLahan(spot.id)} className="action-btn btn-hapus">Hapus</button>
                 </div>
-
               </div>
             ))
           )}
@@ -504,12 +442,11 @@ function Dashboard() {
           <Marker position={[latTerpilih, lngTerpilih]} ref={formMarkerRef} icon={ikonParkirBaru}>
             <Popup autoPan={true} closeButton={false}>
               <div className="popup-wrapper">
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1.5px solid #e2e8f0' }}>
-                  {editIdSpot ? ' Edit Lokasi Parkir' : 'Tambah Lokasi Baru'}
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1.5px solid #e2e8f0' }}>
+                  {editIdSpot ? ' Edit Lokasi Parkir' : ' Tambah Lokasi Baru'}
                 </div>
                 
-                <form onSubmit={handleSubmitForm} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  
+                <form onSubmit={handleSubmitForm} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div>
                     <label className="popup-label">Nama Lokasi</label>
                     <input type="text" className="popup-input" placeholder="Gedung F..." value={namaLokasi} onChange={(e) => setNamaLokasi(e.target.value)} required />
@@ -520,7 +457,7 @@ function Dashboard() {
                     <input type="text" className="popup-input" placeholder="Jl. Raya Utama..." value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} required />
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '6px' }}>
                     <div style={{ flex: 1 }}>
                       <label className="popup-label">Kap. Motor</label>
                       <input type="number" className="popup-input" placeholder="0" value={kapasitasMotor} onChange={(e) => setKapasitasMotor(e.target.value)} required />
@@ -531,7 +468,7 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '6px' }}>
                     <div style={{ flex: 1 }}>
                       <label className="popup-label">Tarif Motor</label>
                       <input type="number" className="popup-input" placeholder="0" value={tarifMotor} onChange={(e) => setTarifMotor(e.target.value)} required />
@@ -547,19 +484,15 @@ function Dashboard() {
                     <input type="text" className="popup-input" placeholder="06:00 - 22:00" value={jamOperasional} onChange={(e) => setJamOperasional(e.target.value)} required />
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                    <button type="submit" className="popup-submit">
-                      {editIdSpot ? 'Simpan Perubahan' : 'Simpan Lokasi'}
-                    </button>
-                    <button type="button" onClick={tutupForm} className="action-btn btn-edit" style={{ height: '36px', marginTop: '10px' }}>Batal</button>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                    <button type="submit" className="popup-submit" style={{ flex: 2, margin: 0 }}>Simpan</button>
+                    <button type="button" onClick={tutupForm} className="action-btn btn-edit" style={{ flex: 1, height: '36px' }}>Batal</button>
                   </div>
-
                 </form>
               </div>
             </Popup>
           </Marker>
         )}
-
       </MapContainer>
     </div>
   );
