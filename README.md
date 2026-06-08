@@ -8,8 +8,8 @@ Proyek Tugas Besar Sistem Informasi Geografis (SIG) ini merupakan aplikasi manaj
 
 | Nama | NIM |
 |------|-----|
-| Jana Rohman Wasiso | 123140046 |
 | Cikal Galih Nur Arifin | 123140109 |
+| Jana Rohman Wasiso | 123140046 |
 | Ragil Bayu Saputra | 123140128 |
 | Andre Prasetya Daely | 123140131 |
 
