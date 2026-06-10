@@ -474,7 +474,7 @@ def get_parking_zones_geojson():
         from psycopg2.extras import RealDictCursor
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Query agregasi spasial untuk tabel parking_zones
+        
         query = """
             SELECT row_to_json(fc) AS geojson
             FROM (
