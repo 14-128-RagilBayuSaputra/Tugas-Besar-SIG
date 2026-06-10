@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon } from 'react-leaflet'; // Ditambahkan: Polygon
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import Dashboard from './Dashboard';
@@ -69,7 +69,7 @@ const FilterPill = ({ label, value, state, setState }) => {
   );
 };
 
-function KameraPetaHandler({ posisi, zoom }) { // Dimodifikasi: Menerima properti zoom dinamis
+function KameraPetaHandler({ posisi, zoom }) { 
   const map = useMap();
   useEffect(() => {
     if (posisi) {
@@ -84,11 +84,11 @@ function PetaUtama() {
   const koordinatLampung = [-5.4294, 105.2611];
   
   const [posisiPeta, setPosisiPeta] = useState(koordinatLampung);
-  const [zoomPeta, setZoomPeta] = useState(zoomAwal); // Ditambahkan: State untuk kontrol zoom kamera dinamis
+  const [zoomPeta, setZoomPeta] = useState(zoomAwal); 
   const [titikUser, setTitikUser] = useState(null); 
 
   const [daftarParkir, setDaftarParkir] = useState([]);
-  const [daftarZona, setDaftarZona] = useState([]); // Ditambahkan: Tempat penampung GeoJSON 8 Zona dari backend
+  const [daftarZona, setDaftarZona] = useState([]); 
   const [kataKunci, setKataKunci] = useState('');
   const [tampilFilter, setTampilFilter] = useState(false);
   
@@ -108,7 +108,6 @@ function PetaUtama() {
     }
   };
 
-  // Ditambahkan: Fungsi khusus untuk memuat GeoJSON 8 Zona wilayah dari backend FastAPI
   const muatDataZona = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/zones/geojson');
@@ -122,26 +121,22 @@ function PetaUtama() {
 
   useEffect(() => {
     muatDataParkir(koordinatLampung[0], koordinatLampung[1]);
-    muatDataZona(); // Ditambahkan: Panggil fungsi pemuatan data zona saat pertama kali web dibuka
+    muatDataZona(); 
   }, []);
 
-  // Ditambahkan: Menghitung zona mana yang sedang aktif dicari oleh user lewat input text
   const zonaAktif = daftarZona.find(zona => 
     kataKunci.trim() !== '' && 
     zona.properties.nama_zona.toLowerCase().includes(kataKunci.toLowerCase())
   );
 
-  // Ditambahkan: Otomatis menggeser kamera ke tengah wilayah jika nama zona diketik cocok
   useEffect(() => {
     if (zonaAktif && zonaAktif.geometry && zonaAktif.geometry.coordinates) {
       const koordinatPolygon = zonaAktif.geometry.coordinates[0];
       
-      // Mengambil sampel koordinat sudut polygon di tengah-tengah area untuk target pusat kamera
       const titikTengah = koordinatPolygon[Math.floor(koordinatPolygon.length / 2)];
       
-      // Ingat aturan GIS: Tukar posisi [bujur, lintang] dari GeoJSON menjadi [lintang, bujur] untuk Leaflet
       setPosisiPeta([titikTengah[1], titikTengah[0]]);
-      setZoomPeta(14); // Set fokus zoom ideal untuk satu wilayah kecamatan
+      setZoomPeta(14);
     } else if (kataKunci.trim() === '') {
       setZoomPeta(zoomAwal);
     }
@@ -169,8 +164,6 @@ function PetaUtama() {
     );
   };
 
-  // Ditambahkan: Fungsi pembantu geospasial sederhana di frontend untuk memfilter marker di dalam Polygon
-  // (Fungsi ini mendeteksi apakah titik marker parkir jatuh di dalam koordinat batas area polygon zona aktif)
   const isPointInPolygon = (point, polygon) => {
     const x = point[0], y = point[1];
     let inside = false;
@@ -184,13 +177,10 @@ function PetaUtama() {
   };
 
   const lahanTersaring = daftarParkir.filter((spot) => {
-    // MODIFIKASI LOGIKA PENCARIAN: Jika sedang mencari zona, filter marker berdasarkan batas area spasial polygon-nya
-    let cocokNama = false;
     if (zonaAktif && zonaAktif.geometry && zonaAktif.geometry.coordinates) {
       const koordinatBatasArea = zonaAktif.geometry.coordinates[0];
       cocokNama = isPointInPolygon([spot.latitude, spot.longitude], koordinatBatasArea);
     } else {
-      // Jika tidak mencari zona, kembalikan ke pencarian teks nama jalan/lokasi parkir asli milikmu
       cocokNama = spot.nama_lokasi.toLowerCase().includes(kataKunci.toLowerCase());
     }
 
@@ -349,7 +339,7 @@ function PetaUtama() {
               </svg>
               <input
                 type="text"
-                placeholder="Cari lokasi atau wilayah..." // Deskripsi placeholder disesuaikan dengan fitur baru
+                placeholder="Cari lokasi atau wilayah..."
                 value={kataKunci}
                 onChange={(e) => setKataKunci(e.target.value)}
                 className="topbar-input"
@@ -479,10 +469,10 @@ function PetaUtama() {
           <Polygon 
             positions={zonaAktif.geometry.coordinates[0].map(coord => [coord[1], coord[0]])}
             pathOptions={{
-              color: '#0f172a',       // Garis luar biru dongker gelap khas tema web kalian
-              fillColor: '#38bdf8',   // Isian warna transparan biru muda sky-blue agar estetik
-              fillOpacity: 0.35,      // Transparansi 35% agar peta jalan di bawahnya tetap terlihat jelas
-              weight: 3               // Ketebalan garis pembatas
+              color: '#0f172a',     
+              fillColor: '#38bdf8',   
+              fillOpacity: 0.35,     
+              weight: 3              
             }}
           >
             <Popup>
