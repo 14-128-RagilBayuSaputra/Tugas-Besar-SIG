@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon } from 'react-leaflet'; // Ditambahkan: Polygon
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import Dashboard from './Dashboard';
@@ -69,13 +69,13 @@ const FilterPill = ({ label, value, state, setState }) => {
   );
 };
 
-function KameraPetaHandler({ posisi }) {
+function KameraPetaHandler({ posisi, zoom }) { // Dimodifikasi: Menerima properti zoom dinamis
   const map = useMap();
   useEffect(() => {
     if (posisi) {
-      map.flyTo(posisi, 15, { animate: true, duration: 1.5 });
+      map.flyTo(posisi, zoom || 15, { animate: true, duration: 1.5 });
     }
-  }, [posisi, map]);
+  }, [posisi, zoom, map]);
   return null;
 }
 
@@ -84,9 +84,11 @@ function PetaUtama() {
   const koordinatLampung = [-5.4294, 105.2611];
   
   const [posisiPeta, setPosisiPeta] = useState(koordinatLampung);
+  const [zoomPeta, setZoomPeta] = useState(zoomAwal); // Ditambahkan: State untuk kontrol zoom kamera dinamis
   const [titikUser, setTitikUser] = useState(null); 
 
   const [daftarParkir, setDaftarParkir] = useState([]);
+  const [daftarZona, setDaftarZona] = useState([]); // Ditambahkan: Tempat penampung GeoJSON 8 Zona dari backend
   const [kataKunci, setKataKunci] = useState('');
   const [tampilFilter, setTampilFilter] = useState(false);
   
@@ -106,9 +108,44 @@ function PetaUtama() {
     }
   };
 
+  // Ditambahkan: Fungsi khusus untuk memuat GeoJSON 8 Zona wilayah dari backend FastAPI
+  const muatDataZona = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/zones/geojson');
+      if (response.data && response.data.features) {
+        setDaftarZona(response.data.features);
+      }
+    } catch (error) {
+      console.error("Gagal mengambil data GeoJSON zona wilayah:", error);
+    }
+  };
+
   useEffect(() => {
     muatDataParkir(koordinatLampung[0], koordinatLampung[1]);
+    muatDataZona(); // Ditambahkan: Panggil fungsi pemuatan data zona saat pertama kali web dibuka
   }, []);
+
+  // Ditambahkan: Menghitung zona mana yang sedang aktif dicari oleh user lewat input text
+  const zonaAktif = daftarZona.find(zona => 
+    kataKunci.trim() !== '' && 
+    zona.properties.nama_zona.toLowerCase().includes(kataKunci.toLowerCase())
+  );
+
+  // Ditambahkan: Otomatis menggeser kamera ke tengah wilayah jika nama zona diketik cocok
+  useEffect(() => {
+    if (zonaAktif && zonaAktif.geometry && zonaAktif.geometry.coordinates) {
+      const koordinatPolygon = zonaAktif.geometry.coordinates[0];
+      
+      // Mengambil sampel koordinat sudut polygon di tengah-tengah area untuk target pusat kamera
+      const titikTengah = koordinatPolygon[Math.floor(koordinatPolygon.length / 2)];
+      
+      // Ingat aturan GIS: Tukar posisi [bujur, lintang] dari GeoJSON menjadi [lintang, bujur] untuk Leaflet
+      setPosisiPeta([titikTengah[1], titikTengah[0]]);
+      setZoomPeta(14); // Set fokus zoom ideal untuk satu wilayah kecamatan
+    } else if (kataKunci.trim() === '') {
+      setZoomPeta(zoomAwal);
+    }
+  }, [kataKunci, zonaAktif]);
 
   const dapatkanLokasiSaya = () => {
     if (!navigator.geolocation) {
@@ -121,6 +158,7 @@ function PetaUtama() {
         const lng = position.coords.longitude;
         setTitikUser([lat, lng]);
         setPosisiPeta([lat, lng]);
+        setZoomPeta(15);
         muatDataParkir(lat, lng);
       },
       (error) => {
@@ -131,8 +169,30 @@ function PetaUtama() {
     );
   };
 
+  // Ditambahkan: Fungsi pembantu geospasial sederhana di frontend untuk memfilter marker di dalam Polygon
+  // (Fungsi ini mendeteksi apakah titik marker parkir jatuh di dalam koordinat batas area polygon zona aktif)
+  const isPointInPolygon = (point, polygon) => {
+    const x = point[0], y = point[1];
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const xi = polygon[i][1], yi = polygon[i][0];
+      const xj = polygon[j][1], yj = polygon[j][0];
+      const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  };
+
   const lahanTersaring = daftarParkir.filter((spot) => {
-    const cocokNama = spot.nama_lokasi.toLowerCase().includes(kataKunci.toLowerCase());
+    // MODIFIKASI LOGIKA PENCARIAN: Jika sedang mencari zona, filter marker berdasarkan batas area spasial polygon-nya
+    let cocokNama = false;
+    if (zonaAktif && zonaAktif.geometry && zonaAktif.geometry.coordinates) {
+      const koordinatBatasArea = zonaAktif.geometry.coordinates[0];
+      cocokNama = isPointInPolygon([spot.latitude, spot.longitude], koordinatBatasArea);
+    } else {
+      // Jika tidak mencari zona, kembalikan ke pencarian teks nama jalan/lokasi parkir asli milikmu
+      cocokNama = spot.nama_lokasi.toLowerCase().includes(kataKunci.toLowerCase());
+    }
 
     let cocokKendaraan = true;
     if (filterKendaraan === 'Mobil') cocokKendaraan = spot.kapasitas_mobil > 0;
@@ -210,6 +270,7 @@ function PetaUtama() {
             .search-container { 
               flex: 1 !important; 
               width: auto !important; 
+              position: relative !important; 
             }
 
             .search-box-wrapper {
@@ -288,7 +349,7 @@ function PetaUtama() {
               </svg>
               <input
                 type="text"
-                placeholder="Cari lokasi parkir..."
+                placeholder="Cari lokasi atau wilayah..." // Deskripsi placeholder disesuaikan dengan fitur baru
                 value={kataKunci}
                 onChange={(e) => setKataKunci(e.target.value)}
                 className="topbar-input"
@@ -404,13 +465,36 @@ function PetaUtama() {
         </svg>
       </button>
 
-      <MapContainer center={posisiPeta} zoom={zoomAwal} zoomControl={false} style={{ height: '100%', width: '100%', zIndex: 0 }}>
+      <MapContainer center={posisiPeta} zoom={zoomPeta} zoomControl={false} style={{ height: '100%', width: '100%', zIndex: 0 }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        <KameraPetaHandler posisi={posisiPeta} />
+        {/* Menggunakan state zoomPeta dinamis agar pergerakan flyTo sinkron */}
+        <KameraPetaHandler posisi={posisiPeta} zoom={zoomPeta} />
+
+        {/* Ditambahkan: Me-render bangun datar Polygon transparan di atas peta jika nama zona sedang dicari */}
+        {zonaAktif && zonaAktif.geometry && zonaAktif.geometry.coordinates && (
+          <Polygon 
+            positions={zonaAktif.geometry.coordinates[0].map(coord => [coord[1], coord[0]])}
+            pathOptions={{
+              color: '#0f172a',       // Garis luar biru dongker gelap khas tema web kalian
+              fillColor: '#38bdf8',   // Isian warna transparan biru muda sky-blue agar estetik
+              fillOpacity: 0.35,      // Transparansi 35% agar peta jalan di bawahnya tetap terlihat jelas
+              weight: 3               // Ketebalan garis pembatas
+            }}
+          >
+            <Popup>
+              <div style={{ background: '#0f172a', padding: '10px 12px', color: 'white', fontSize: '12px', fontWeight: '600' }}>
+                Zona Aktif: <strong>Kecamatan {zonaAktif.properties.nama_zona}</strong>
+                <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '400', marginTop: '4px' }}>
+                  {zonaAktif.properties.deskripsi_zona}
+                </div>
+              </div>
+            </Popup>
+          </Polygon>
+        )}
 
         {titikUser && (
           <Marker position={titikUser} icon={ikonLokasiUser}>

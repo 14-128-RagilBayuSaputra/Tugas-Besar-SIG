@@ -463,3 +463,49 @@ def update_parking_spot(
         if conn:
             conn.rollback()
         raise HTTPException(status_code=500, detail=f"Gagal memperbarui data: {str(e)}")
+    
+@app.get("/api/zones/geojson")
+def get_parking_zones_geojson():
+    conn = get_db_connection()
+    if conn is None:
+        return {"status": "error", "message": "Gagal terhubung ke database"}
+    
+    try:
+        from psycopg2.extras import RealDictCursor
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Query agregasi spasial untuk tabel parking_zones
+        query = """
+            SELECT row_to_json(fc) AS geojson
+            FROM (
+                SELECT 'FeatureCollection' AS type, 
+                       array_to_json(array_agg(f)) AS features
+                FROM (
+                    SELECT 'Feature' AS type,
+                           ST_AsGeoJSON(z.geom_zona)::json AS geometry,
+                           row_to_json(
+                               (SELECT l FROM (
+                                   SELECT 
+                                       z.id, 
+                                       z.nama_zona, 
+                                       z.deskripsi_zona
+                               ) l)
+                           ) AS properties
+                    FROM parking_zones z
+                ) AS f
+            ) AS fc;
+        """
+        
+        cursor.execute(query)
+        result = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        if result and result['geojson']:
+            return result['geojson']
+        else:
+            return {"type": "FeatureCollection", "features": []}
+            
+    except Exception as e:
+        return {"status": "error", "message": f"Gagal membuat GeoJSON Zona: {str(e)}"}
